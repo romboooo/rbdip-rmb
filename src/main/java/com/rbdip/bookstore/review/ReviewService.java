@@ -1,8 +1,8 @@
 package com.rbdip.bookstore.review;
 
-import com.rbdip.bookstore.order.OrderItemRepository;
-import com.rbdip.bookstore.order.OrderRepository;
+import com.rbdip.bookstore.purchase.PurchaseHistory;
 import java.util.List;
+import java.util.logging.Logger;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,24 +17,19 @@ import org.springframework.stereotype.Service;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
+    private final PurchaseHistory purchaseHistory;
 
-    public ReviewService(
-            ReviewRepository reviewRepository,
-            OrderRepository orderRepository,
-            OrderItemRepository orderItemRepository) {
+    private static final Logger LOGGER = Logger.getLogger(ReviewService.class.getName());
+
+    public ReviewService(ReviewRepository reviewRepository, PurchaseHistory purchaseHistory) {
         this.reviewRepository = reviewRepository;
-        this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
+        this.purchaseHistory = purchaseHistory;
     }
 
     public Review addReview(Long productId, String authorName, Integer rating, String comment) {
-        // NB: в текущей "грязной" версии verifiedPurchase не используется дальше,
-        // но сам факт прямого обращения к order-репозиториям отсюда - и есть
-        // намеренная связанность, которую нужно устранить.
-        boolean verifiedPurchase = !orderRepository.findAll().isEmpty()
-                && !orderItemRepository.findAll().isEmpty();
+        if (purchaseHistory.hasAnyPurchaseForProduct(productId)) {
+            LOGGER.fine(() -> "Review submitted for a product with purchase history: " + productId);
+        }
         Review review = new Review(productId, authorName == null ? "anonymous" : authorName, rating, comment);
         return reviewRepository.save(review);
     }
