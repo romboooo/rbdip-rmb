@@ -44,6 +44,21 @@ class PricingCalculatorTest {
         assertThat(calculate("2.345", 1, "regular", null)).isEqualByComparingTo("2.35");
     }
 
+    @Test
+    void appliesCustomerDiscountBeforeFixedCoupon() {
+        assertThat(calculate("20.00", 1, "vip", "SAVE10")).isEqualByComparingTo("8.00");
+    }
+
+    @Test
+    void ignoresUnknownCustomerTypesAndCoupons() {
+        assertThat(calculate("20.00", 1, "student", "SAVE30")).isEqualByComparingTo("20.00");
+    }
+
+    @Test
+    void emptyOrderHasZeroTotal() {
+        assertThat(calculator.calculateOrderTotal(List.of(), "regular", null)).isEqualByComparingTo("0.00");
+    }
+
     private BigDecimal calculate(String price, int quantity, String customerType, String couponCode) {
         return calculator.calculateOrderTotal(
                 List.of(new PricingCalculator.LineItem(new BigDecimal(price), quantity)), customerType, couponCode);
