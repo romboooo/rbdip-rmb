@@ -1,5 +1,6 @@
 package com.rbdip.bookstore.order;
 
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -9,16 +10,24 @@ public class OrderRequestValidator {
         if (request == null) {
             throw new IllegalArgumentException("order request is required");
         }
+        validateCustomer(request);
+        validateItems(request.items());
+    }
+
+    private void validateCustomer(CreateOrderRequest request) {
         if (isBlank(request.customerFullName())) {
             throw new IllegalArgumentException("customerFullName is required");
         }
         if (isBlank(request.customerAddress())) {
             throw new IllegalArgumentException("customerAddress is required");
         }
-        if (request.items() == null || request.items().isEmpty()) {
+    }
+
+    private void validateItems(List<CreateOrderRequest.Item> items) {
+        if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("order must contain at least one item");
         }
-        for (CreateOrderRequest.Item item : request.items()) {
+        for (CreateOrderRequest.Item item : items) {
             validateItem(item);
         }
     }

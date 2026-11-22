@@ -10,18 +10,23 @@ public class OrderPersistenceService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final CustomerRepository customerRepository;
 
-    public OrderPersistenceService(OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+    public OrderPersistenceService(
+            OrderRepository orderRepository,
+            OrderItemRepository orderItemRepository,
+            CustomerRepository customerRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.customerRepository = customerRepository;
     }
 
     public Order save(CreateOrderRequest request, List<OrderLine> lines) {
-        Order order = orderRepository.save(new Order(
-                request.customerFullName(), request.customerAddress(), request.customerPhone(), NEW_ORDER_STATUS));
+        Customer customer = customerRepository.save(new Customer(
+                request.customerFullName(), request.customerAddress(), request.customerPhone()));
+        Order order = orderRepository.save(new Order(customer, NEW_ORDER_STATUS));
         for (OrderLine line : lines) {
-            orderItemRepository.save(new OrderItem(
-                    order.getId(), line.product().getName(), line.product().getPrice(), line.quantity()));
+            orderItemRepository.save(new OrderItem(order, line.product(), line.quantity()));
         }
         return order;
     }
